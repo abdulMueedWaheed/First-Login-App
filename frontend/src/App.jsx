@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react'
 import './App.css';
 import api from './api.js';
 import Home from './Home.jsx';
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import GoogleIcon from '@mui/icons-material/Google';
+import GitHubIcon from '@mui/icons-material/GitHub';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import { CSSTransition } from 'react-transition-group'; // Add this import
 
 function App() {
   const [isRegister, setIsRegister] = useState(false);
@@ -14,6 +21,7 @@ function App() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [animating, setAnimating] = useState(false); // Add this state for animation
 
   // Check if user is already logged in
   useEffect(() => {
@@ -42,7 +50,13 @@ function App() {
         });
 
         setSuccess('Registration successful! You can now login.');
-        setIsRegister(false);
+        
+        // Animate mode change
+        setAnimating(true);
+        setTimeout(() => {
+          setIsRegister(false);
+          setAnimating(false);
+        }, 300);
       }
       else {
         const response = await api.post(`/api/auth/login`, {
@@ -78,7 +92,21 @@ function App() {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     setIsLoggedIn(false);
+  };
+
+  const toggleMode = (e) => {
+    e.preventDefault();
+    setAnimating(true);
+    setError('');
+    setSuccess('');
+    
+    // Delay the actual state change to allow for animation
+    setTimeout(() => {
+      setIsRegister(!isRegister);
+      setAnimating(false);
+    }, 300);
   };
 
   // If user is logged in, show Home component
@@ -88,68 +116,92 @@ function App() {
 
   // Otherwise show the login/register form
   return (
-    <div className='auth-container'>
-      <h2>{isRegister ? 'Register' : 'Login'}</h2>
-
+    <div className={`container ${isRegister ? 'register-mode' : ''}`}>
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
+      
+      <div className={`form-box-login ${animating ? 'animating' : ''}`}>
+        <form onSubmit={handleSubmit}>
+          <CSSTransition
+            in={!animating}
+            timeout={300}
+            classNames="form"
+            unmountOnExit
+          >
+            <div>
+              <h1>{isRegister ? 'Sign Up' : 'Login'}</h1>
+              
+              {isRegister && (
+                <div className="input-box">
+                  <input
+                    type="text"
+                    name="fullName"
+                    placeholder="Full Name"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                  />
+                  <PersonIcon/>
+                </div>
+              )}
+              
+              <div className="input-box">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+                <div className='icon'><PersonIcon/></div>
+              </div>
 
-      <form onSubmit={handleSubmit}>
-        {isRegister && (
-          <div className='form-group'>
-            <input
-              type="text"
-              name="fullName"
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        )}
-        <div className="form-group">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
+              <div className="input-box">
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <div className='icon'><LockIcon/></div>
+              </div>
+              
+              {!isRegister && (
+                <div className="forgot-link">
+                  <a href="#">Forgot Password?</a>
+                </div>
+              )}
+              
+              <button
+                type="submit"
+                className="btn"
+                disabled={loading}
+              >
+                {loading ? "Processing..." : (isRegister ? "Sign Up" : "Login")}
+              </button>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className='submit-btn'
-        >
-          {loading ? 'Processing...' : (isRegister ? 'Register' : 'Login')}
-        </button>
-      </form>
+              <p>
+                {isRegister ? "Already have an account? " : "Don't have an account? "}
+                <a href="#" onClick={toggleMode}>
+                  {isRegister ? "Login" : "Sign Up"}
+                </a>
+              </p>
 
-      <p>
-        {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
-        <button
-          className='toggle-btn'
-          onClick={() => {
-            setIsRegister(!isRegister);
-            setError('');
-            setSuccess('');
-          }}
-        >
-          {isRegister ? 'Login' : 'Register'}
-        </button>
-      </p>
+              <p>Or login with other platforms:</p>
+
+              <div className="social-icons">
+                <a href="#"><GitHubIcon/></a>
+                <a href="#"><GoogleIcon/></a>
+                <a href="#"><FacebookIcon/></a>
+                <a href="#"><LinkedInIcon/></a>
+              </div>
+            </div>
+          </CSSTransition>
+        </form>
+      </div>
     </div>
   );
 }
