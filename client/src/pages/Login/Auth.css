@@ -1,0 +1,111 @@
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 80px auto;
+  padding: 40px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+.login-container h2 {
+  margin-bottom: 25px;
+  color: #222;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-form input {
+  padding: 12px;
+  font-size: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+/* Placeholder styling - more visible color */
+.login-form input::placeholder {
+  color: #888;
+  opacity: 1; /* Firefox */
+}
+
+.login-form input:focus {
+  border-color: #007bff;
+}
+
+.login-form button {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.login-form button:hover {
+  background-color: #0056b3;
+}
+
+.toggle-text {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #555;
+}
+
+.toggle-button {
+  margin-left: 5px;
+  background: none;
+  border: none;
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #fdfdfd;
+}
+
+.input-group input {
+  border: none;
+  outline: none;
+  flex: 1;
+  font-size: 15px;
+  padding-left: 8px;
+  background: transparent;
+}
+
+/* Fix the placeholder selector - was incorrect previously */
+.input-group input::placeholder {
+  color: #888;
+  opacity: 1; /* For Firefox */
+}
+
+.input-icon {
+  color: #777;
+}
+
+@media (max-width: 500px) {
+  .login-container {
+    margin: 40px 20px;
+    padding: 30px 20px;
+  }
+}
