@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
-import User from "../models/userModel.js";
 import { generateToken } from "../lib/utils.js";
-
+import supabase from "../lib/supabase_connect.js";
 
 export const signUp = async(req, res) => {
 	const { fullName, email, password } = req.body;
@@ -19,9 +18,14 @@ export const signUp = async(req, res) => {
 			});
 		}
 
-		const user = await User.findOne({ email });
+		// Check if user already exists
+		const { data: existingUser } = await supabase
+			.from('users')
+			.select('*')
+			.eq('email', email)
+			.single();
 
-		if (user) {
+		if (existingUser) {
 			return res.status(400).json({
 				message: "This email is already in use!"
 			});
@@ -30,25 +34,37 @@ export const signUp = async(req, res) => {
 		const salt = await bcrypt.genSalt(10);
 		const hashedPassword = await bcrypt.hash(password, salt);
 
-		const newUser = new User({
-			fullName,
-			email,
-			password: hashedPassword,
-		});
+		// Insert new user into Supabase
+		const { data: newUser, error } = await supabase
+			.from('users')
+			.insert([
+				{
+					full_name: fullName,
+					email: email,
+					password: hashedPassword,
+					profile_pic: null
+				}
+			])
+			.select()
+			.single();
 
-		if (newUser) {
-			generateToken(newUser._id, res);
-			await newUser.save();
-
-			res.status(201).json({
-				_id: newUser._id,
-				fullName: newUser.fullName,
-				email: newUser.email,
-				profilePic: newUser.profilePic,
+		if (error) {
+			console.error("Supabase error:", error);
+			return res.status(400).json({
+				message: "Failed to create user"
 			});
 		}
 
-		else {
+		if (newUser) {
+			generateToken(newUser.id, res);
+
+			res.status(201).json({
+				_id: newUser.id,
+				fullName: newUser.full_name,
+				email: newUser.email,
+				profilePic: newUser.profile_pic
+			});
+		} else {
 			res.status(400).json({
 				message: "Invalid User Data"
 			});
@@ -65,9 +81,14 @@ export const login = async(req, res) => {
 	const {email, password} = req.body;
 
 	try {
-		const user = await User.findOne({ email });
+		// Get user from Supabase
+		const { data: user, error } = await supabase
+			.from('users')
+			.select('*')
+			.eq('email', email)
+			.single();
 
-		if (!user) {
+		if (error || !user) {
 			return res.status(400).json({
 				message: "User Not Found!"
 			});
@@ -76,19 +97,18 @@ export const login = async(req, res) => {
 		const isPasswordCorrect = await bcrypt.compare(password, user.password);
 		if (!isPasswordCorrect) {
 			return res.status(400).json({
-				message: "Invalid PassWord"
+				message: "Invalid Password"
 			});
 		}
 
-		generateToken(user._id, res);
+		generateToken(user.id, res);
 
 		res.status(200).json({
-			_id: user._id,
-			fullName: user.fullName,
+			_id: user.id,
+			fullName: user.full_name,
 			email: user.email,
-			profilePic: user.profilePic
+			profilePic: user.profile_pic
 		});
-
 	}
 	
 	catch (error) {
@@ -97,9 +117,15 @@ export const login = async(req, res) => {
 	}
 }
 
-export const logout = (req, res) => {
+export const logout = async (req, res) => {
 	try {
+		// Clear the JWT cookie
 		res.cookie("jwt", "", { maxAge: 0 });
+		
+		// Note: If you're using Supabase Authentication in the future
+		// you might want to invalidate the session on Supabase side as well
+		// const { error } = await supabase.auth.signOut();
+		
 		res.status(200).json({ message: "Logged out successfully" });
 	}
   
