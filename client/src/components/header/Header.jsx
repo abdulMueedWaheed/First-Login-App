@@ -1,4 +1,4 @@
-import './navbar.scss'
+import './Header.css'
 import { Link, useNavigate } from 'react-router-dom';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
@@ -6,20 +6,23 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import NotificationsOutlinedIcon from '@mui/icons-material/NotificationsOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import CloseIcon from '@mui/icons-material/Close';
+import MenuIcon from '@mui/icons-material/Menu';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import { DarkModeContext } from '../../context/DarkModeContext';
 import { useContext, useEffect, useState, useRef } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { makeRequest } from '../../axios';
 
-// const DEFAULT_AVATAR = "https://www.pngitem.com/pimgs/m/146-1468479_my-profile-icon-blank-profile-picture-circle-hd.png";
-
-const Navbar = () => {
+const Header = () => {
   const { darkMode, toggle } = useContext(DarkModeContext);
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, logout } = useContext(AuthContext);
   const [profilePic, setProfilePic] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [showResults, setShowResults] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const searchRef = useRef(null);
   const navigate = useNavigate();
 
@@ -100,23 +103,35 @@ const Navbar = () => {
     setSearchQuery("");
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
   return (
-    <div className='navbar'>
-      <div className="left">
-        <span className="logo">UniVibe</span>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <HomeOutlinedIcon sx={{ cursor: 'pointer'}} />
-        </Link>
+    <header className={`header ${darkMode ? 'dark' : ''}`}>
+      <div className="header-container">
+        {/* Logo */}
+        <div className="logo">
+          <Link to="/">
+            <h1>ShopEase</h1>
+          </Link>
+        </div>
 
-        {(darkMode === false) ? 
-          <DarkModeOutlinedIcon onClick={toggle} sx={{ cursor: 'pointer' }} /> : 
-          <LightModeOutlinedIcon sx={{ cursor: 'pointer' }} onClick={toggle} />}
-
-        <div className="search" ref={searchRef}>
+        {/* Search Bar */}
+        <div className="search-bar" ref={searchRef}>
           <SearchOutlinedIcon />
           <input 
-            type='text' 
-            placeholder='Search users...' 
+            type="text" 
+            placeholder="Search products..." 
             value={searchQuery}
             onChange={handleSearchChange}
             onFocus={() => {
@@ -149,23 +164,80 @@ const Navbar = () => {
             </div>
           )}
         </div>
-      </div>
 
-      <div className="right">
-        <NotificationsOutlinedIcon sx={{ cursor: 'pointer' }} />
-        <div className="user">
-          <Link to={`/profile/${currentUser.id}`}>
-            <img 
-              src={profilePic || "/path/to/default-avatar.jpg"} 
-              alt="Profile Pic" 
-              style={{border: "2px solid black"}}  
-            />
-            <span>{currentUser.full_name}</span>
+        {/* Navigation Links - Desktop */}
+        <nav className={`nav-links ${menuOpen ? 'active' : ''}`}>
+          <ul>
+            <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
+            <li><Link to="/products" onClick={() => setMenuOpen(false)}>Products</Link></li>
+            <li><Link to="/about" onClick={() => setMenuOpen(false)}>About</Link></li>
+            <li><Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link></li>
+          </ul>
+          <div className="theme-toggle mobile-only">
+            {(darkMode === false) ? 
+              <DarkModeOutlinedIcon onClick={toggle} /> : 
+              <LightModeOutlinedIcon onClick={toggle} />}
+            <span>Theme</span>
+          </div>
+        </nav>
+
+        {/* User Actions */}
+        <div className="user-actions">
+          {/* Theme Toggle - Desktop */}
+          <div className="theme-toggle desktop-only">
+            {(darkMode === false) ? 
+              <DarkModeOutlinedIcon onClick={toggle} /> : 
+              <LightModeOutlinedIcon onClick={toggle} />}
+          </div>
+          
+          {/* Cart Icon */}
+          <Link to="/cart" className="cart-icon">
+            <ShoppingCartOutlinedIcon />
+            <span className="cart-count">0</span>
           </Link>
+
+          {/* Notifications */}
+          <div className="notifications">
+            <NotificationsOutlinedIcon />
+          </div>
+
+          {/* User Menu */}
+          {currentUser ? (
+            <div className="user-menu">
+              <div className="user-avatar">
+                <Link to={`/profile/${currentUser.id}`}>
+                  <img 
+                    src={profilePic || "/path/to/default-avatar.jpg"} 
+                    alt="Profile Pic"
+                  />
+                </Link>
+              </div>
+              <div className="user-dropdown">
+                <Link to={`/profile/${currentUser.id}`}>
+                  Profile
+                </Link>
+                {currentUser.is_admin && (
+                  <Link to="/admin/dashboard">
+                    <DashboardOutlinedIcon /> Dashboard
+                  </Link>
+                )}
+                <button onClick={handleLogout}>
+                  <LogoutOutlinedIcon /> Logout
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link to="/login" className="login-button">Sign In</Link>
+          )}
+
+          {/* Hamburger Menu */}
+          <button className="menu-toggle" onClick={toggleMenu}>
+            {menuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
-export default Navbar;
+export default Header;
