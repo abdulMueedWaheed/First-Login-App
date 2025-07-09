@@ -6,12 +6,12 @@ import {
   getAllOrders, 
   updateOrderStatus 
 } from '../controllers/orderController.js';
-import { authenticateUser } from '../middleware/authenticateUser.js';
+import { protectRoute } from '../middleware/authenticateUser.js';
 
 const router = express.Router();
 
 // All order routes require authentication
-router.use(authenticateUser);
+router.use(protectRoute);
 
 // User order routes
 router.post('/', createOrder);

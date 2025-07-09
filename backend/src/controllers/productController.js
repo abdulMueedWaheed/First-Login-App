@@ -43,7 +43,9 @@ export const getProducts = async (req, res) => {
     }
     
     res.status(200).json(products);
-  } catch (error) {
+  }
+  
+  catch (error) {
     console.log("Error in getProducts controller:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
@@ -97,7 +99,8 @@ export const createProduct = async (req, res) => {
     
     // Add image URL if image was uploaded via middleware
     if (req.file) {
-      productData.image_url = req.file.path;
+      // Store the relative URL path instead of filesystem path
+      productData.image_url = `/uploads/${req.file.filename}`;
     }
     
     // Insert into Supabase
@@ -138,7 +141,8 @@ export const updateProduct = async (req, res) => {
     
     // Add image URL if image was uploaded via middleware
     if (req.file) {
-      updateData.image_url = req.file.path;
+      // Store the relative URL path instead of filesystem path
+      updateData.image_url = `/uploads/${req.file.filename}`;
     }
     
     // Update in Supabase

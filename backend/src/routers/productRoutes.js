@@ -6,7 +6,7 @@ import {
   updateProduct, 
   deleteProduct 
 } from '../controllers/productController.js';
-import { authenticateUser } from '../middleware/authenticateUser.js';
+import { protectRoute } from '../middleware/authenticateUser.js';
 import upload from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
@@ -16,8 +16,8 @@ router.get('/', getProducts);
 router.get('/:id', getProductById);
 
 // Protected routes - require authentication
-router.post('/', authenticateUser, upload.single('image'), createProduct);
-router.put('/:id', authenticateUser, upload.single('image'), updateProduct);
-router.delete('/:id', authenticateUser, deleteProduct);
+router.post('/', protectRoute, upload.single('image'), createProduct);
+router.put('/:id', protectRoute, upload.single('image'), updateProduct);
+router.delete('/:id', protectRoute, deleteProduct);
 
 export default router;
